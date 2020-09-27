@@ -15,6 +15,9 @@ using Microsoft.Extensions.Hosting;
 using WebAppExternalLogin.Extensions;
 using Microsoft.AspNetCore.Routing;
 using WebAppExternalLogin.Authorization;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace WebAppExternalLogin
 {
@@ -49,6 +52,22 @@ namespace WebAppExternalLogin
                            .AllowAnyHeader()
                            .AllowAnyOrigin();
                  }));
+            // set forward header keys to be the same value as request's header keys
+            // so that redirect URIs and other security policies work correctly.
+            var aspNETCORE_FORWARDEDHEADERS_ENABLED = string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"), "true", StringComparison.OrdinalIgnoreCase);
+            if (aspNETCORE_FORWARDEDHEADERS_ENABLED)
+            {
+                //To forward the scheme from the proxy in non-IIS scenarios
+                services.Configure<ForwardedHeadersOptions>(options =>
+                {
+                    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+                    // Only loopback proxies are allowed by default.
+                    // Clear that restriction because forwarders are enabled by explicit 
+                    // configuration.
+                    options.KnownNetworks.Clear();
+                    options.KnownProxies.Clear();
+                });
+            }
 
             services.AddDbContext<ApplicationDbContext>(config =>
             {
@@ -58,6 +77,46 @@ namespace WebAppExternalLogin
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+                options.CheckConsentNeeded = context => true;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
+            });
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.Name = $"{Configuration["applicationName"]}.AspNetCore.Identity.Application";
+                options.LoginPath = $"/Identity/Account/Login";
+                options.LogoutPath = $"/Identity/Account/Logout";
+                options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
+                options.Events = new CookieAuthenticationEvents()
+                {
+                    OnRedirectToLogin = (ctx) =>
+                    {
+                        if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == StatusCodes.Status200OK)
+                        {
+                            ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            return Task.CompletedTask;
+                        }
+                        ctx.Response.Redirect(ctx.RedirectUri);
+                        return Task.CompletedTask;
+                    },
+                    OnRedirectToAccessDenied = (ctx) =>
+                    {
+                        if (ctx.Request.Path.StartsWithSegments("/api") && ctx.Response.StatusCode == StatusCodes.Status200OK)
+                        {
+                            ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                            return Task.CompletedTask;
+                        }
+                        ctx.Response.Redirect(ctx.RedirectUri);
+                        return Task.CompletedTask;
+                    }
+                };
+                var authExpirationSeconds = Convert.ToInt32(CookieAuthExpirationSeconds);
+                options.ExpireTimeSpan = new TimeSpan(0, 0, authExpirationSeconds);
+            });
+
             services.AddAuthentication<IdentityUser>(Configuration);
             IMvcBuilder builder = services.AddRazorPages();
             if (HostingEnvironment.IsDevelopment())
@@ -90,7 +149,8 @@ namespace WebAppExternalLogin
             }
             app.UseCors("CorsPolicy");
             app.UseHttpsRedirection();
-            
+            app.UseForwardedHeaders();
+
             app.MapWhen(ctx => {
                 return ctx.Request.Path.StartsWithSegments("/BlazorHost/BlazorApp1");
             }, config => {
@@ -108,10 +168,10 @@ namespace WebAppExternalLogin
             }, config =>
             {
                 app.UseStaticFiles();
-
+                app.UseAuthentication();
                 app.UseRouting();
-
-                UseAuthMiddleware(config);
+                app.UseAuthorization();
+                app.UseMiddleware<AuthenticationPeekMiddleware>();
                 config.UseSession();
                 app.UseEndpoints(endpoints =>
                 {
@@ -129,9 +189,12 @@ namespace WebAppExternalLogin
             builder.UseCookiePolicy();
             //  app.UseBlazorFrameworkFiles();
 
+            builder.UseAuthentication();
             builder.UseRouting();
+            builder.UseAuthorization();
+            builder.UseMiddleware<AuthenticationPeekMiddleware>();
 
-            UseAuthMiddleware(builder);
+ 
             builder.UseSession();
             builder.UseEndpoints(endpoints =>
             {
@@ -144,11 +207,6 @@ namespace WebAppExternalLogin
             endpoints.MapControllers();
             endpoints.MapRazorPages();
         }
-        private void UseAuthMiddleware(IApplicationBuilder builder)
-        {
-            builder.UseAuthentication();
-            builder.UseAuthorization();
-            builder.UseMiddleware<AuthenticationPeekMiddleware>();
-        }
+ 
     }
 }
