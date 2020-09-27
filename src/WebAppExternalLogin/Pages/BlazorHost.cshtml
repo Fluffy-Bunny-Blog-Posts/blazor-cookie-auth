@@ -1,0 +1,32 @@
+﻿@page "{id}/{*path:nonfile}"
+@model WebAppExternalLogin.Pages.BlazorHostModel
+@{
+    ViewData["Title"] = "BlazorHost";
+}
+@section headEnd
+{
+    <base href="@Model.BlazorId/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+}
+<div class="alert alert-primary" role="alert">
+    This Blazor client-side app (@Model.BlazorId) is hosted in a Razor Page
+</div>
+
+@{
+    <app>Loading...</app>
+
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+}
+
+@section Scripts
+{
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js');</script>
+}

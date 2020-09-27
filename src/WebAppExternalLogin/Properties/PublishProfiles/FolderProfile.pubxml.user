@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_PublishTargetUrl>C:\work\github\Fluffy-Bunny-Blog-Posts\blazor-cookie-auth\src\WebAppExternalLogin\bin\Release\netstandard2.1\publish\</_PublishTargetUrl>
+  </PropertyGroup>
+</Project>
