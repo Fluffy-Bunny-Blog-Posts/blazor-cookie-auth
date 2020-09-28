@@ -2,8 +2,8 @@
 
 namespace FluffyBunny.BlazorCookieAuth.Services
 {
-    public interface IAuthHandlerHook
+    public interface IExternalTrafficHandlerHook 
     {
-        Task OnAuthorizedCallAsync(long seconds);
+        Task OnTrafficAsync();
     }
 }

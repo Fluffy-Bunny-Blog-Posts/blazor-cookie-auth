@@ -24,38 +24,40 @@ namespace FluffyBunny.BlazorCookieAuth
             builder.Services.AddSingleton<IHostAccessor>(hostAccessor);
 
             builder.Services.AddTransient<AccountHelper>();
-            builder.Services.AddTransient<AuthorizedHandler>();
+            builder.Services.AddTransient<HostAuthorizedHandler>();
+            builder.Services.AddTransient<ExternalWatcherDelegatingHandler>();
+            
 
             builder.Services.AddHttpClient(Constants.HostingHttpClientName,
              client => {
-                 baseAddress = $"{hostAccessor.BaseAddress.Scheme}://{hostAccessor.BaseAddress.Authority}";
-                 client.BaseAddress = new Uri(baseAddress);
-             }).AddHttpMessageHandler<AuthorizedHandler>();
+                client.BaseAddress = new Uri(baseAddress);
+             }).AddHttpMessageHandler<HostAuthorizedHandler>();
 
             builder.Services.AddTransient<HttpClient>(sp => {
-                var authorizedHandler = sp.GetRequiredService<AuthorizedHandler>();
+                var authorizedHandler = sp.GetRequiredService<HostAuthorizedHandler>();
                 return new HttpClient(authorizedHandler)
                 {
-                    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
+                    BaseAddress = new Uri(baseAddress)
                 };
             });
             builder.Services.AddSingleton<IHostHttpClient, HostHttpClient>();
-            builder.Services.AddSingleton<IAuthPingService, AuthPingService>();
+            builder.Services.AddSingleton<IAuthStatusService, AuthStatusService>();
 
             return builder;
         }
         public static WebAssemblyHostBuilder AddAuthPingServiceTimerService(this WebAssemblyHostBuilder builder)
         {
-            builder.Services.AddSingleton<AuthPingServiceTimerService>();
-            builder.Services.AddSingleton<IAuthHandlerHook>(sp =>
+            builder.Services.AddSingleton<HostAuthStatusTimerService>();
+            builder.Services.AddSingleton<IHostAuthHandlerHook>(sp =>
             {
-                return sp.GetRequiredService<AuthPingServiceTimerService>();
+                return sp.GetRequiredService<HostAuthStatusTimerService>();
             });
-            builder.Services.AddSingleton<IAuthPingServiceTimerService>(sp =>
+            builder.Services.AddSingleton<KeepAliveTimerService>();
+            builder.Services.AddSingleton<IExternalTrafficHandlerHook>(sp =>
             {
-                return sp.GetRequiredService<AuthPingServiceTimerService>();
+                return sp.GetRequiredService<KeepAliveTimerService>();
             });
-            
+
             return builder;
         }
     }

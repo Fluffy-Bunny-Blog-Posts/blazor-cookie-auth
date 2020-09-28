@@ -2,8 +2,8 @@
 
 namespace FluffyBunny.BlazorCookieAuth.Services
 {
-    public interface IAuthPingService
+    public interface IHostAuthHandlerHook  
     {
-        Task PingAsync();
+        Task OnAuthorizedExpiresInAsync(long seconds);
     }
 }

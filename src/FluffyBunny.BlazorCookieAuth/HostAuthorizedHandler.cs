@@ -10,18 +10,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FluffyBunny.BlazorCookieAuth
 {
-    public class AuthorizedHandler : DelegatingHandler
+    public class HostAuthorizedHandler : DelegatingHandler
     {
         private readonly AccountHelper _accountHelper;
-        private readonly IAuthHandlerHook _authHandlerHook;
+        private readonly IHostAuthHandlerHook _authHandlerHook;
         private readonly List<IAuthHandlerStateSink> _authHandlerStateSinks;
 
-        public AuthorizedHandler(AccountHelper accountHelper, 
+        public HostAuthorizedHandler(AccountHelper accountHelper, 
             IServiceProvider serviceProvider,
             IEnumerable<IAuthHandlerStateSink> authHandlerStateSinks)
         {
             _accountHelper = accountHelper;
-            _authHandlerHook = serviceProvider.GetService<IAuthHandlerHook>();
+            _authHandlerHook = serviceProvider.GetService<IHostAuthHandlerHook>();
             _authHandlerStateSinks = authHandlerStateSinks.ToList();
         }
         int? CheckForAuthSeconds(HttpResponseMessage responseMessage)
@@ -78,13 +78,12 @@ namespace FluffyBunny.BlazorCookieAuth
                         var sec = authExpSec.FirstOrDefault();
                         if (!string.IsNullOrEmpty(sec))
                         {
-                            await _authHandlerHook.OnAuthorizedCallAsync(Convert.ToInt32(sec));
+                            await _authHandlerHook.OnAuthorizedExpiresInAsync(Convert.ToInt32(sec));
                         }
                     }
                 }
                 return responseMessage;
             }
-
         }
     }
 }

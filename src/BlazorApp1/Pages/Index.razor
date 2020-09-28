@@ -1,7 +1,23 @@
-﻿@page "/"
-
+﻿@inject FluffyBunny.BlazorCookieAuth.Services.IAuthStatusService AuthStatusService
+@inject BlazorApp1.Services.ISimpleService SimpleService
+@page "/"
 <h1>Hello, world!</h1>
 
-Welcome to your new app.
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+
+<button class="btn btn-primary" @onclick="CheckAuthAsync">Check Auth</button>
+<button class="btn btn-primary" @onclick="PingAsync">xip.io ping</button>
+
+@code {
+    private int currentCount = 0;
+
+    private async Task CheckAuthAsync()
+    {
+        await AuthStatusService.CheckAsync();
+    }
+    private async Task PingAsync()
+    {
+        await SimpleService.PingAsync();
+    }
+
+}

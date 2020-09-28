@@ -1,5 +1,4 @@
-@inject FluffyBunny.BlazorCookieAuth.Services.IAuthPingService AuthPingService
-@inject FluffyBunny.BlazorCookieAuth.Services.IAuthPingServiceTimerService AuthPingServiceTimerService
+@inject FluffyBunny.BlazorCookieAuth.Services.IAuthStatusService AuthStatusService
     
 <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
@@ -16,6 +15,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await AuthPingService.PingAsync();
+        await AuthStatusService.CheckAsync();
     }
 }

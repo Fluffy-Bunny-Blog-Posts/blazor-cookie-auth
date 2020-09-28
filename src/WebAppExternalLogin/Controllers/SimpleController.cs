@@ -12,18 +12,17 @@ namespace WebAppExternalLogin.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
 
-    public class AuthStatusController : ControllerBase
+    public class SimpleController : ControllerBase
     {
-        private readonly ILogger<AuthStatusController> _logger;
-        public AuthStatusController(ILogger<AuthStatusController> logger)
+        private readonly ILogger<SimpleController> _logger;
+        public SimpleController(ILogger<SimpleController> logger)
         {
             _logger = logger;
         }
        
-        [Authorize]
         [HttpGet]
-        [Route("check")]
-        public async Task GetCheckAsync()
+        [Route("ping")]
+        public async Task GetPingAsync()
         {
         } 
     }
