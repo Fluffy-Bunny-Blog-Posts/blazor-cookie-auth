@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using FluffyBunny.BlazorCookieAuth;
 using BlazorApp1.Services;
+using FluffyBunny.BlazorCookieAuth.Services;
 
 namespace BlazorApp1
 {
@@ -31,6 +32,10 @@ namespace BlazorApp1
                 client.BaseAddress = new Uri(baseAddress);
             }).AddHttpMessageHandler<ExternalWatcherDelegatingHandler>();
             builder.Services.AddSingleton<ISimpleService, SimpleService>();
+            builder.Services.AddSingleton<IFakeTokenFetchService, FakeTokenFetchService>();
+            builder.Services.AddSingleton<IClientMemoryCache, ClientMemoryCache>();
+            builder.Services.AddSingleton<IAuthHandlerStateSink, MyAuthHandlerStateSink>();
+ 
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
