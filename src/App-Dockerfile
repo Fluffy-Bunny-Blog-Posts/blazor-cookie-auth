@@ -1,0 +1,15 @@
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1 AS base
+WORKDIR /app
+EXPOSE 80
+EXPOSE 443
+ 
+FROM fluffybunny/blazorcookieauthbuild AS build
+WORKDIR /src
+RUN dotnet publish WebAppExternalLogin -c Release -o /out --no-restore --no-build
+RUN ls
+
+FROM base AS final
+WORKDIR /app
+COPY --from=build /out .
+ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+ENTRYPOINT ["dotnet", "WebAppExternalLogin.dll"]

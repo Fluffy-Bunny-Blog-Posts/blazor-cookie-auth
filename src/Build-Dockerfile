@@ -1,0 +1,10 @@
+# Stage 1
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build
+
+WORKDIR /src
+COPY . .
+RUN find -type d -name bin -prune -exec rm -rf {} \; && find -type d -name obj -prune -exec rm -rf {} \;
+RUN dotnet restore ./blazor-cookie-auth.sln
+RUN dotnet build   ./blazor-cookie-auth.sln -c Debug --no-restore
+RUN dotnet test    ./blazor-cookie-auth.sln -c Debug --no-restore --no-build
+RUN dotnet build   ./blazor-cookie-auth.sln -c Release --no-restore
