@@ -1,4 +1,4 @@
-# External-Login-in-asp.net-core-3.x-Using-In-Memory-Database-in-Production
+# Cookie Authorization with Blazor
 [medium post](https://medium.com/@ghstahl/blazor-and-cookie-authorization-bf6757edaa13?sk=fc8f568f8a63230b214634add8edeb92)  
 
 
